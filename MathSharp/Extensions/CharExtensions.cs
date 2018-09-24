@@ -25,5 +25,18 @@ namespace MathSharp.Extensions
         public static bool IsMutiplicativeOperator(this in char c) =>
             c == '*' ||
             c == '/';
+        public static bool TryGetInverse(this in char c, out char x)
+        {
+            switch (c)
+            {
+                case '[': x = ']'; return true;
+                case ']': x = '['; return true;
+                case '(': x = ')'; return true;
+                case ')': x = '('; return true;
+                case '{': x = '}'; return true;
+                case '}': x = '{'; return true;
+                default: x = '?';  return false;
+            }
+        }
     }
 }
