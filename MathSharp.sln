@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathSharp", "MathSharp\MathSharp.csproj", "{67E181A0-C5FA-4ED4-8FEC-CD50941C1AED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{67E181A0-C5FA-4ED4-8FEC-CD50941C1AED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67E181A0-C5FA-4ED4-8FEC-CD50941C1AED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67E181A0-C5FA-4ED4-8FEC-CD50941C1AED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67E181A0-C5FA-4ED4-8FEC-CD50941C1AED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FF7A0CA-744E-4453-AE48-3F95E537E52F}
+	EndGlobalSection
+EndGlobal
