@@ -1,31 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace MathSharp.Extensions
 {
     public static class CharExtensions
     {
-        public static bool IsBracket(this in char c) =>
+        public static bool IsBracket(this char c) =>
             IsStartingBracket(c) || IsEndingBracket(c);
-        public static bool IsDigit(this in char c) =>
+        public static bool IsDigit(this char c) =>
             char.IsDigit(c);
 
-        public static bool IsStartingBracket(this in char c) =>
+        public static bool IsStartingBracket(this char c) =>
             c == '{' ||
             c == '[' ||
             c == '(';
-        public static bool IsEndingBracket(this in char c) =>
+        public static bool IsEndingBracket(this char c) =>
             c == '}' ||
             c == ']' ||
             c == ')';
-        public static bool IsAdditiveOperator(this in char c) =>
+        public static bool IsAdditiveOperator(this char c) =>
             c == '+' ||
             c == '-';
-        public static bool IsMutiplicativeOperator(this in char c) =>
+        public static bool IsMutiplicativeOperator(this char c) =>
             c == '*' ||
             c == '/';
-        public static bool TryGetInverse(this in char c, out char x)
+        public static bool TryGetInverse(this char c, out char x)
         {
             switch (c)
             {
@@ -38,5 +35,7 @@ namespace MathSharp.Extensions
                 default: x = '?';  return false;
             }
         }
+        public static bool IsAlphabet(this char c) =>
+            (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
 }
