@@ -10,10 +10,11 @@ namespace MathSharp.Expression
 {
     public class Expression : ITerm
     {
-        public int Degree { get; } = 0;
+        public double Degree { get; } = 0;
         public string Body { get; }
-        public ExpressionType Type { get; } = ExpressionType.Constant;
+        public List<ExpressionType> Types { get; } 
         public Extent Range { get; }
+        public bool IsEquation { get; }
 
         public Dictionary<char, double?> Variables
         {

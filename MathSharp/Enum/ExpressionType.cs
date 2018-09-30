@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace MathSharp.Enum
 {
     public enum ExpressionType
     {
         Constant,
         Polynomial,
-        Complex
+        Trigonometric,
+        Logarithmic,
+        Differential,
+        Integral,
+        Exponential,
+        Complex // contains imaginary number
     }
 }
