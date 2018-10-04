@@ -1,20 +1,10 @@
-﻿
-using MathSharp.Enum;
-using MathSharp.Expression;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MathSharp.Interface
 {
-    public interface ITerm : IComparable<ITerm>
+    public interface ITerm : IComparable<ITerm> , IEntity
     {
-        List<Variable> Variables { get; }
-        double Degree { get; }
-        Extent Range { get; }
-        ExpressionType Type { get; }
-        bool IsExponential { get; }
-
-        double EvaluateFor((char variable, double value)[] valuePairs);
-        
+        void SetVariableValue(char x, double val);
     }
 }

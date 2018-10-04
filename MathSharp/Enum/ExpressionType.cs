@@ -10,6 +10,14 @@ namespace MathSharp.Enum
         Differential,
         Integral,
         Exponential,
-        Complex // contains imaginary number
+        Complex /// contains imaginary number
+    }
+
+    public static class ExpressionTypeHelper
+    {
+        public static ExpressionType CombineWith(this ExpressionType thisType, ExpressionType type)
+        {
+            return ExpressionType.Complex;
+        }
     }
 }
