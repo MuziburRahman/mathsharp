@@ -10,30 +10,11 @@ using System.Collections.ObjectModel;
 
 namespace MathSharp.Entities
 {
-    public class Expression : ITerm
+    public class Expression : IEntity
     {
         public List<ITerm> Members { get; private set; }
-
-        //public Dictionary<char, double?> Variables
-        //{
-        //    get
-        //    {
-        //        if (Members.Count == 1)
-        //            return Members[0].Variables;
-        //        else
-        //        {
-        //            var list = Members[0].Variables.Union(Members[1].Variables);
-        //            for (int i = 2; i < Members.Count; i++)
-        //                list = list.Union(Members[i].Variables);
-        //            return list.ToDictionary(k => k.Key, k=> k.Value);
-        //        }
-
-        //    }
-        //}
-
-        public Extent Range { get ; }
-
-        public ReadOnlyCollection<Variable> Variables;
+        
+        public ReadOnlyCollection<Variable> Variables { get; }
 
         public ExpressionType Type { get; }
 
@@ -49,31 +30,67 @@ namespace MathSharp.Entities
 
         public Expression(string str) 
         {
-            int index = 0;
+            Body = str;
             Members = new List<ITerm>();
-            AdditiveOperators = new List<char>();
+            if (AdditiveOperators is null)
+                AdditiveOperators = new List<char>();
+
+            int index = 0;
+            str.PassWhiteSpace(ref index);
+
+            char StartingBracket = '\0';
+            if (str[index].IsStartingBracket())
+            {
+                StartingBracket = str[index];
+                index++;
+            }
+
+            IEnumerable<Variable> vars = new List<Variable>();
+            Type = ExpressionType.Constant;
 
             while (index < str.Length)
             {
-                str.PassWhiteSpace(ref index);
+                ITerm ex = null;
 
-                if (str[index].IsAdditiveOperator())
+                if (str[index].IsStartingBracket())
+                    ex = new Expression(str, ref index);
+
+                else if (str[index].IsEndingBracket())
+                {
+                    if (StartingBracket != '\0')
+                    {
+                        if (str[index].TryGetInverse(out char c))
+                            if (c == StartingBracket)
+                            {
+                                index++;
+                                break;
+                            }
+                    }
+                    throw new Exception("Bracket mismatch");
+                }
+
+                else if (str[index].IsAdditiveOperator())
                 {
                     AdditiveOperators.Add(str[index]);
                     index++;
+                    continue;
                 }
+                else ex = str.NextTerm(ref index);
 
-                Members.Add(new Expression(str, ref index));
+                Members.Add(ex);
                 if (Members.Count > AdditiveOperators.Count)
                     AdditiveOperators.Add('+');
+
+                //other stuffs
+                vars = vars.Union(ex.Variables);
+                Type = Type.CombineWith(ex.Type);
             }
 
-            Variables = Variable.CombineVariables(Members);
-            //Variables = Variables.Distinct((a)=> a.Sign == b.Sign)
+            Variables = new ReadOnlyCollection<Variable>(vars.ToList());
         }
+
         public Expression(string str, ref int index )
         {
-            Body = str;
             Members = new List<ITerm>();
             if(AdditiveOperators is null)
                 AdditiveOperators = new List<char>();
@@ -91,9 +108,9 @@ namespace MathSharp.Entities
             IEnumerable<Variable> vars = new List<Variable>();
             Type = ExpressionType.Constant;
 
-            while (index < Body.Length)
+            while (index < str.Length)
             {
-                ITerm ex;
+                ITerm ex = null;
 
                 if(str[index].IsStartingBracket())
                     ex = new Expression(str, ref index);
@@ -117,9 +134,10 @@ namespace MathSharp.Entities
                 {
                     AdditiveOperators.Add(str[index]);
                     index++;
+                    continue;
                 }
+                else ex = str.NextTerm(ref index);
 
-                ex = str.NextTerm(ref index);
                 Members.Add(ex);
                 if (Members.Count > AdditiveOperators.Count)
                     AdditiveOperators.Add('+');
@@ -129,18 +147,18 @@ namespace MathSharp.Entities
                 Type = Type.CombineWith(ex.Type);
             }
 
-            Variables = vars.ToList();
-            Range = new Extent(start, Body.Length);
+            Body = str.Substring(start, index - start);
+            Variables = new ReadOnlyCollection<Variable>(vars.ToList());
         }
         
 
 
-        public double EvaluateFor(List<Variable> valuePairs)
+        public double EvaluateFor(IList<Variable> valuePairs)
         {
             double to_ret = 0;
             for (int i = 0; i < Members.Count; i++)
             {
-                double val = Members[i].EvaluateFor(valuePairs);
+                double val = Members[i].EvaluateFor(valuePairs ?? Variables);
                 to_ret += AdditiveOperators[i] == '+' ? val : -val;
             }
             return to_ret;
@@ -151,9 +169,9 @@ namespace MathSharp.Entities
             throw new NotImplementedException();
         }
 
-        public void SetVariableValue(char x, double val)
+        public override string ToString()
         {
-            Members.ForEach(member => member.SetVariableValue(x, val));
+            return Body;
         }
     }
 }

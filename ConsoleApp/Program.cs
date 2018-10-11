@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using MathSharp.Entities;
 
@@ -22,33 +23,55 @@ namespace ConsoleApp
             //Expression expr = new Expression("2x^2*log(5x) - sin(3x)");
             //Console.WriteLine(expr.EvaluateFor(new (char, double)[] { ('x', 8) }));
 
-
-            Console.WriteLine("Write an expression:");
-
-            Expression expr = new Expression(Console.ReadLine());
-
-            for (int i = 0; i < expr.Variables.Count; i++)
+            string[] TestStrings = new[]
             {
-                Console.Write($"Define the value for {expr.Variables[i].Sign} : ");
-            TryAgain:
-                if (double.TryParse(Console.ReadLine(), out double value))
+                "2x^2*log(5x) - sin(3x)", // x = 9
+                "log150/x + 78/x^2",
+
+            };
+
+            double[] Solutions = new[]
+            {
+                266.86,
+                1.2
+            };
+            var ValueOfX = 9;
+            var VarList = new List<Variable> { new Variable('x', 9) };
+
+            for (int i = 0; i < TestStrings.Length; i++)
+            {
+                Expression ex = new Expression(TestStrings[i]);
+                Console.WriteLine(TestStrings[i] + "  for x = "+ValueOfX);
+
+                try
                 {
-                    expr.Variables[i] = new Variable(expr.Variables[i].Sign, value);
+                    double val = ex.EvaluateFor(VarList);
+                    Console.Write("Value obtained = " + val);
+                    Console.WriteLine(" , Actual value = "+Solutions[i]);
+                    if (val - Solutions[i] < 0.01)
+                        Pass();
+                    else Fail();
                 }
-                else
+                catch (Exception)
                 {
-                    Console.WriteLine("Input isn't palpable, try again: ");
-                    goto TryAgain;
+                    Fail();
                 }
+                Console.Write('\n');
             }
 
-            Console.WriteLine($"The value is {expr.EvaluateFor(null)}");
+            void Pass()
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(" PASSED");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
 
-            //Variable a = new Variable('x');
-            //Variable b = new Variable('x');
-
-            //Console.Write(a.Equals(b));
-
+            void Fail()
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(" FAILED");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
             Console.ReadKey();
         }
     }

@@ -3,21 +3,17 @@ using MathSharp.Enum;
 using MathSharp.Interface;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace MathSharp.MathEntities
 {
     public class TermPool : ITerm
     {
-        public Extent Range { get; set; }
-
-        public List<Variable> Variables { get; }
+        public ReadOnlyCollection<Variable> Variables { get; }
 
         public ExpressionType Type { get; }
-
-        public bool IsExponential => throw new NotImplementedException();
-
-        public string Body { get; }
+        
         public IList<ITerm> TermList;
 
 
@@ -29,9 +25,7 @@ namespace MathSharp.MathEntities
         {
             TermList = terms;
             MultiplicativeOperators = m_opertrs;
-
-            Range = new Extent(terms[0].Range.Start, terms[terms.Count - 1].Range.End);
-
+            
             Type = ExpressionType.Constant;
 
             IEnumerable<Variable> t = new List<Variable>();
@@ -40,7 +34,7 @@ namespace MathSharp.MathEntities
                 t = t.Union(term.Variables);
                 Type = Type.CombineWith(term.Type);
             }
-            Variables = t.ToList();
+            Variables = new ReadOnlyCollection<Variable>(t.ToList());
         }
 
 
@@ -51,7 +45,7 @@ namespace MathSharp.MathEntities
             throw new NotImplementedException();
         }
 
-        public double EvaluateFor(List<Variable> valuePairs)
+        public double EvaluateFor(IList<Variable> valuePairs)
         {
             double ret_value = 1;
             for(int i = 0; i<TermList.Count; i++)
@@ -64,12 +58,6 @@ namespace MathSharp.MathEntities
                 else ret_value /= val;
             }
             return ret_value;
-        }
-
-        public void SetVariableValue(char x, double val)
-        {
-            foreach (var term in TermList)
-                term?.SetVariableValue(x, val);
         }
     }
 }

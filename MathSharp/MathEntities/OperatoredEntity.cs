@@ -4,6 +4,7 @@ using MathSharp.Extensions;
 using MathSharp.Interface;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace MathSharp.MathEntities
@@ -15,22 +16,19 @@ namespace MathSharp.MathEntities
         public ITerm Degree { get; private set; }
 
         public ITerm MainBody { get; private set; }
+        
 
-        public Extent Range { get; private set; }
-
-        public List<Variable> Variables { get; }
+        public ReadOnlyCollection<Variable> Variables { get; }
 
         public ExpressionType Type { get; }
 
         public bool IsExponential => throw new NotImplementedException();
-
-        public string Body { get; }
+        
 
 
         /// <param name="index">the index from where main body starts, excluding operator</param>
         public OperatoredEntity(string op, string str, ref int index)
         {
-            Body = str;
             Operator = op;
             int start = index - op.Length;
 
@@ -49,11 +47,9 @@ namespace MathSharp.MathEntities
             else MainBody = new Entity(str, ref index);
 
             ///other stuffs
-            Range = new Extent(start, index);
-
             if (Degree is null)
                 Variables = MainBody.Variables;
-            else Variables = MainBody.Variables.Union(Degree.Variables).ToList();
+            else Variables = new ReadOnlyCollection<Variable>(MainBody.Variables.Union(Degree.Variables).ToList());
 
             switch (op)
             {
@@ -80,7 +76,7 @@ namespace MathSharp.MathEntities
             throw new NotImplementedException();
         }
 
-        public double EvaluateFor(List<Variable> valuePairs)
+        public double EvaluateFor(IList<Variable> valuePairs)
         {
             double ret_value = MainBody.EvaluateFor(valuePairs);
             switch (Operator)
@@ -122,12 +118,6 @@ namespace MathSharp.MathEntities
                 default: throw new Exception("Couldn't evaluate operatored entity");
             }
             return ret_value;
-        }
-
-        public void SetVariableValue(char x, double val)
-        {
-            MainBody?.SetVariableValue(x, val);
-            Degree?.SetVariableValue(x, val);
         }
     }
 }

@@ -39,7 +39,7 @@ public class WritableExtent
     /// <summary>Determines if this Extent is inside the bounds of another Extent.</summary>
     /// <param name="WritableExtent">The parent Extent to test on</param>
     /// <returns>True if Extent is inclusive, else false</returns>
-    public bool IsInsideExtent(Extent Extent)
+    public bool IsInsideExtent(WritableExtent Extent)
     {
         return this.IsValid() && Extent.IsValid() && Extent.ContainsValue(this.Start) && Extent.ContainsValue(this.End);
     }
@@ -47,7 +47,7 @@ public class WritableExtent
     /// <summary>Determines if another Extent is inside the bounds of this Extent.</summary>
     /// <param name="Extent">The child Extent to test</param>
     /// <returns>True if Extent is inside, else false</returns>
-    public bool ContainsExtent(Extent Extent)
+    public bool ContainsExtent(WritableExtent Extent)
     {
         return this.IsValid() && Extent.IsValid() && this.ContainsValue(Extent.Start) && this.ContainsValue(Extent.End);
     }

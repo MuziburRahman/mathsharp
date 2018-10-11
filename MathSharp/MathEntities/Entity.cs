@@ -11,8 +11,6 @@ namespace MathSharp.MathEntities
 {
     public class Entity : ITerm
     {
-        public Extent Range { get ; set ; }
-
         public ReadOnlyCollection<Variable> Variables { get; }
 
         public ExpressionType Type { get; }
@@ -23,14 +21,41 @@ namespace MathSharp.MathEntities
 
 
 
-        public Entity(string str, ref int index)
+        public Entity(string str)
         {
+            int index = 0;
             str.PassWhiteSpace(ref index);
 
             if (str[index].IsStartingBracket())
                 throw new Exception("Awww.. didn't expect a bracket in front of a single entity!");
 
             Body = str;
+            var vlist = new List<Variable>();
+
+            if (str[index].IsDigit() || str[index] == '.')
+            {
+                for (; index < str.Length && (str[index].IsDigit() || str[index] == '.'); index++) ;
+                Type = ExpressionType.Constant;
+            }
+            else if (str[index].IsAlphabet())
+            {
+                /// Note: Entity contructor won't check for operator
+
+                vlist.Add(new Variable(str[index], double.NaN));
+                index++;
+                Type = ExpressionType.Polynomial;
+            }
+
+            Variables = new ReadOnlyCollection<Variable>(vlist);
+        }
+
+        public Entity(string str, ref int index)
+        {
+            str.PassWhiteSpace(ref index);
+
+            if (str[index].IsStartingBracket())
+                throw new Exception("Awww.. didn't expect a bracket in front of a single entity!");
+            
             int start = index;
             var vlist = new List<Variable>();
 
@@ -49,14 +74,15 @@ namespace MathSharp.MathEntities
             }
 
             Variables = new ReadOnlyCollection<Variable>(vlist);
-            Range = new Extent(start, index);
+            Body = str.Substring(start, index - start);
         }
+        
 
 
 
-        public double EvaluateFor(ReadOnlyCollection<Variable> valuePairs)
+        public double EvaluateFor(IList<Variable> valuePairs)
         {
-            if (Type == ExpressionType.Constant && double.TryParse(Body.Substring(Range.Start, Range.Length), out double ret_value))
+            if (Type == ExpressionType.Constant && double.TryParse(Body, out double ret_value))
                 return ret_value;
             
             if(Type == ExpressionType.Polynomial)
@@ -80,15 +106,23 @@ namespace MathSharp.MathEntities
             throw new Exception("Couldn't evaluate entity");
         }
 
-        public int CompareTo(ITerm other)
-        {
-            throw new NotImplementedException();
-        }
+        //public ITerm Derivative(int degree = 1, ITerm )
+        //{
+        //    if (Type == ExpressionType.Polynomial && )
+        //        return new Entity("0");
+        //    return new Entity("1");
+        //}
 
-        public void SetVariableValue(char x, double val)
+        //public ITerm Integral(int degree = 1)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public static ITerm operator * (Entity a, Entity b)
         {
-            if (!(Variables is null) && Variables[0].Sign == x)
-                Variables[0].Value = val;
-        }
+            if (a.Type == ExpressionType.Constant && b.Type == ExpressionType.Constant)
+                return new Entity((a.EvaluateFor(null) * b.EvaluateFor(null)).ToString());
+            else return null;
+        } 
     }
 }

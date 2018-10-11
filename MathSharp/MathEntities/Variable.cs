@@ -3,12 +3,13 @@ using MathSharp.Interface;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace MathSharp.Entities
 {
     public class Variable 
     {
-        public double Value { get; }
+        public double Value { get; set; }
 
         public char Sign { get; }
 
@@ -25,7 +26,7 @@ namespace MathSharp.Entities
         }
         
 
-        public static List<Variable> CombineVariables(IEnumerable<ITerm> terms)
+        public static ReadOnlyCollection<Variable> CombineVariables(IEnumerable<ITerm> terms)
         {
             if (terms is null)
                 throw new Exception("Term shouldn't be null");
@@ -40,7 +41,7 @@ namespace MathSharp.Entities
                 vlist = vlist.Union(itrtr.Current.Variables);
             }
 
-            return vlist.ToList();
+            return new ReadOnlyCollection<Variable>(vlist.ToList());
         }
 
         public int CompareTo(Variable other)
