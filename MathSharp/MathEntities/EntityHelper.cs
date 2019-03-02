@@ -9,22 +9,22 @@ namespace MathSharp.MathEntities
     public static class EntityHelper
     {
 
-        public static ITerm NextTerm(this string str, ref int index)
+        public static TermBase NextTerm(this string str, ref int index)
         {
             str.PassWhiteSpace(ref index);
 
-            List<char> mult_oprtrs = new List<char>();
             int start = index;
-            List<ITerm> termPool = new List<ITerm>();
+            List<(TermBase, char)> termPool = new List<(TermBase, char)>();
 
             do
             {
+                char oprtr = '\0';
                 str.PassWhiteSpace(ref index);
                 char c = str[index];
                 
                 if (c.IsMutiplicativeOperator())
                 {
-                    mult_oprtrs.Add( c);
+                    oprtr = c;
                     index++;
                     continue;
                 }
@@ -35,26 +35,22 @@ namespace MathSharp.MathEntities
                     else  break;
                 }
 
-                else if (c.IsEndingBracket())
+                else if (c.IsEndingBracket() || c=='=')
                     break;
 
-                termPool.Add(str.NextSingleTerm(ref index));
-                if (termPool.Count > mult_oprtrs.Count)
-                    mult_oprtrs.Add('*');
+                termPool.Add((str.NextSingleTerm(ref index), oprtr == '\0' ? '*' : oprtr));
 
             } while ((index < str.Length));
+            
 
             if (termPool.Count == 1)
-                return termPool[0];
+                return termPool[0].Item1;
 
-            else return new TermPool(termPool, mult_oprtrs);
+            else return new TermPool(termPool.ToArray());
         }
 
-        
-        public static ITerm NextSingleTerm(this string str, ref int index)
+        public static TermBase NextSingleTerm(this string str, ref int index)
         {
-            int start = index;
-
             str.PassWhiteSpace(ref index);
 
             char c = str[index];
@@ -78,7 +74,7 @@ namespace MathSharp.MathEntities
                 /// operator check
                 if (str.IsMathematicalOperator(ref index, out string oprtr))
                 {
-                    return new OperatoredEntity(oprtr, str, ref index);
+                    return new OperatoredTerm(oprtr, str, ref index);
                 }
 
                 /// variable check
@@ -97,7 +93,15 @@ namespace MathSharp.MathEntities
 
             else if (c.IsStartingBracket())
             {
-                return new Expression(str, ref index);
+                index++;
+                var ex = new Expression(str, ref index);
+                str.PassWhiteSpace(ref index);
+                if (str[index].IsEndingBracket())
+                {
+                    index++;
+                    return ex;
+                }
+                else throw new Exception("Closing bracke not found");
             }
 
             //else if(c.IsEndingBracket() && str[start].TryGetInverse(out char inv))
@@ -111,6 +115,18 @@ namespace MathSharp.MathEntities
 
             throw new Exception("Couldn't extract single term " );
         }
+
+        /// <summary>
+        /// will decide whether a string represents just an expression , or a function, or an equation
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        //public static TermBase ParseMathData(this string str, ref int index)
+        //{
+        //    if (str.IndexOf('=') > 0)
+        //        return new Equation(str);
+        //}
 
     }
 }

@@ -8,36 +8,51 @@ using System.Linq;
 
 namespace MathSharp.MathEntities
 {
-    public class ExponentTerm : ITerm
+    public class ExponentTerm : TermBase
     {
-        public ReadOnlyCollection<Variable> Variables { get; }
+        public override ReadOnlyCollection<Variable> Variables { get; }
 
-        public ExpressionType Type { get; }
+        public override ExpressionType Type { get; }
 
-        public ITerm Base { get; }
+        public TermBase Base { get; }
 
-        public ITerm Degree { get; }
+        public TermBase Degree { get; }
 
 
-        public ExponentTerm(ITerm _base, ITerm degree)
+        public ExponentTerm(TermBase _base, TermBase degree)
         {
             Base = _base;
             Degree = degree;
 
-            Type = _base.Type.CombineWith(degree.Type);
+            Type = ExpressionType.Exponential;
             Variables = new ReadOnlyCollection<Variable>(Base.Variables.Union(Degree.Variables).ToList());
         }
 
 
 
-        public int CompareTo(ITerm other)
+        public int CompareTo(TermBase other)
         {
             throw new NotImplementedException();
         }
 
-        public double EvaluateFor(IList<Variable> valuePairs)
+        public override double EvaluateFor(params Variable[] valuePairs)
         {
             return Math.Pow(Base.EvaluateFor(valuePairs), Degree.EvaluateFor(valuePairs));
+        }
+
+        public override TermBase Derivative(int degree = 1, char RegardsTo = '\0')
+        {
+            throw new NotImplementedException();
+        }
+
+        public override TermBase Integral(int degree = 1, char RegardsTo = '\0', double upperbound = double.NaN, double lowerbound = double.NaN)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool CanAdd(TermBase other)
+        {
+            throw new NotImplementedException();
         }
     }
 }

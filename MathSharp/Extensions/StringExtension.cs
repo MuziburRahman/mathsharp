@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MathSharp.Extensions
 {
@@ -67,13 +68,18 @@ namespace MathSharp.Extensions
         }
 
 
+        /// <summary>
+        /// moves <paramref name="index"/> to the end of a single term, not term pool
+        /// </summary>
+        /// <param name="str">body</param>
         /// <param name="index">the index to start iterating from</param>
         public static void GetNextSingleEntity(this string str, ref int index)
         {
-            Queue<char> BracketQueue = new Queue<char>();
-
             str.PassWhiteSpace(ref index);
+            if (index >= str.Length)
+                return;
 
+            Queue<char> BracketQueue = new Queue<char>();
 
             /// if starts with a bracket
             if (str[index].IsStartingBracket()) do
@@ -102,7 +108,7 @@ namespace MathSharp.Extensions
             /// if starts with a number
             else if (str[index].IsDigit() || str[index] == '.')
             {
-                GetNextNumber(str, ref index);
+                GetNextNumberIndex(str, ref index);
 
                 if (str.Length > index && str[index] == '^')
                 {
@@ -114,29 +120,55 @@ namespace MathSharp.Extensions
             /// if starts with a char : variable or operator
             else if (str[index].IsAlphabet())
             {
-                /// first check for possible operators
+                /// first check for possible operators, like tan or sin
                 if (str.IsMathematicalOperator(ref index, out string _))
                     GetNextSingleEntity(str, ref index);
 
                 /// now check for variables
                 else if (str.Length > index + 1 && str[index + 1] == '^')
                 {
-                    index++;
+                    index+=2;
                     GetNextSingleEntity(str, ref index);
                 }
             }
         }
 
-        
+
         /// <summary>
         /// if the sring starts with digit, this method works
         /// </summary>
         /// <param name="index">the index to start iteration from</param>
-        public static void GetNextNumber(this string str, ref int index)
+        public static void GetNextNumberIndex(this string str, ref int index)
         {
             str.PassWhiteSpace(ref index);
 
             for (; index < str.Length && str[index].IsDigit() || str[index] == '.'; index++) ;
+        }
+
+        public static double GetNextDecimalNumber(this string str, ref int index)
+        {
+            str.PassWhiteSpace(ref index);
+
+            for (; index < str.Length && !str[index].IsDigit() && str[index] != '.' && str[index] != '-' && str[index] != '+'; index++) ;
+
+            if (index >= str.Length)
+                return double.NaN;
+
+            bool dot_found = false;
+            int start = index;
+
+            if (str[index] == '+' || str[index] == '-')
+                index++;
+
+            if (index < str.Length && str[index] == '.')
+            {
+                dot_found = true;
+                if (++index < str.Length && !str[index].IsDigit())
+                    return double.NaN;
+            }
+
+            for (; index < str.Length && str[index].IsDigit() || (!dot_found && str[index] == '.'); index++) ;
+            return double.Parse(str.Substring(start, index - start));
         }
 
         public static void PassWhiteSpace(this string str, ref int index)

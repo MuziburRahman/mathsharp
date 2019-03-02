@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 
 namespace MathSharp.Entities
 {
-    public class Variable 
+    public struct Variable 
     {
         public double Value { get; set; }
 
@@ -26,7 +26,7 @@ namespace MathSharp.Entities
         }
         
 
-        public static ReadOnlyCollection<Variable> CombineVariables(IEnumerable<ITerm> terms)
+        public static ReadOnlyCollection<Variable> CombineVariables(IEnumerable<TermBase> terms)
         {
             if (terms is null)
                 throw new Exception("Term shouldn't be null");
@@ -56,7 +56,6 @@ namespace MathSharp.Entities
             if (obj is Variable v)
             {
                 return CompareTo(v) == 0;
-
             }
             return false;
         }
@@ -66,14 +65,19 @@ namespace MathSharp.Entities
             return Sign.GetHashCode();
         }
 
-        //public static bool operator ==(Variable a, Variable b)
-        //{
-        //    return a.CompareTo(b) == 0;
-        //}
+        public static bool operator ==(Variable a, Variable b)
+        {
+            return a.Sign == b.Sign;
+        }
 
-        //public static bool operator !=(Variable a, Variable b)
-        //{
-        //    return a.CompareTo(b) == 0;
-        //}
+        public static bool operator !=(Variable a, Variable b)
+        {
+            return !(a == b);
+        }
+
+        public static implicit operator Variable((char, double) d)
+        {
+            return new Variable(d.Item1, d.Item2);
+        }
     }
 }
