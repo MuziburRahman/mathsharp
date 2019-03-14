@@ -9,22 +9,22 @@ namespace MathSharp.MathEntities
     public static class EntityHelper
     {
 
-        public static ITerm NextTerm(this string str, ref int index)
+        public static TermBase NextTerm(this string str, ref int index)
         {
             str.PassWhiteSpace(ref index);
 
-            List<char> mult_oprtrs = new List<char>();
             int start = index;
-            List<ITerm> termPool = new List<ITerm>();
+            List<(TermBase, char)> termPool = new List<(TermBase, char)>();
 
+            char oprtr = '\0';
             do
             {
                 str.PassWhiteSpace(ref index);
                 char c = str[index];
-                
+
                 if (c.IsMutiplicativeOperator())
                 {
-                    mult_oprtrs.Add( c);
+                    oprtr = c;
                     index++;
                     continue;
                 }
@@ -32,36 +32,35 @@ namespace MathSharp.MathEntities
                 {
                     if (index == start)
                         index++;
-                    else  break;
+                    else
+                        break;
                 }
 
-                else if (c.IsEndingBracket())
+                else if (c.IsEndingBracket() || c == '=')
                     break;
 
-                termPool.Add(str.NextSingleTerm(ref index));
-                if (termPool.Count > mult_oprtrs.Count)
-                    mult_oprtrs.Add('*');
+                termPool.Add((str.NextSingleTerm(ref index), oprtr == '\0' ? '*' : oprtr));
+                oprtr = '\0';
 
             } while ((index < str.Length));
 
-            if (termPool.Count == 1)
-                return termPool[0];
 
-            else return new TermPool(termPool, mult_oprtrs);
+            if (termPool.Count == 1)
+                return termPool[0].Item1;
+
+            else
+                return new TermPool(termPool.ToArray()).Inflate();
         }
 
-        
-        public static ITerm NextSingleTerm(this string str, ref int index)
+        public static TermBase NextSingleTerm(this string str, ref int index)
         {
-            int start = index;
-
             str.PassWhiteSpace(ref index);
 
             char c = str[index];
 
             if (c.IsDigit() || c == '.')
             {
-                Entity ent = new Entity(str, ref index);
+                Entity ent = new Entity(str, ref index); /// entity like 24.2756
 
                 if (str.Length > index + 2 && str[index] == '^')
                 {
@@ -78,7 +77,17 @@ namespace MathSharp.MathEntities
                 /// operator check
                 if (str.IsMathematicalOperator(ref index, out string oprtr))
                 {
-                    return new OperatoredEntity(oprtr, str, ref index);
+                    /// degree , if any
+                    str.PassWhiteSpace(ref index);
+                    if (str[index] == '^')
+                    {
+                        index++;
+                        var degree = str.NextSingleTerm(ref index);
+
+                        return new ExponentTerm(new OperatoredTerm(oprtr, str.NextSingleTerm(ref index)), degree);
+                    }
+
+                    return new OperatoredTerm(oprtr, str.NextSingleTerm(ref index));
                 }
 
                 /// variable check
@@ -86,7 +95,7 @@ namespace MathSharp.MathEntities
                 {
                     Entity ent = new Entity(str, ref index);
 
-                    if (str.Length > index  && str[index] == '^') /// Range won't be allowed here 'cause Range hasn't be found yet
+                    if (str.Length > index && str[index] == '^') /// Range won't be allowed here 'cause Range hasn't be found yet
                     {
                         index++;
                         return new ExponentTerm(ent, str.NextSingleTerm(ref index));
@@ -97,20 +106,17 @@ namespace MathSharp.MathEntities
 
             else if (c.IsStartingBracket())
             {
-                return new Expression(str, ref index);
+                var exp = new Expression(str, ref index);
+                str.PassWhiteSpace(ref index);
+                if (str.Length > index && str[index] == '^')
+                {
+                    index++;
+                    return new ExponentTerm(exp, str.NextSingleTerm(ref index));
+                }
+                return exp;
             }
 
-            //else if(c.IsEndingBracket() && str[start].TryGetInverse(out char inv))
-            //{
-            //    if(inv == c)
-            //    {
-            //        index++;
-                    
-            //    }
-            //}
-
-            throw new Exception("Couldn't extract single term " );
+            throw new Exception("Couldn't extract single term ");
         }
-
     }
 }

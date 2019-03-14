@@ -9,49 +9,34 @@ using System.Linq;
 
 namespace MathSharp.MathEntities
 {
-    public class OperatoredEntity : ITerm
+    public class OperatoredTerm : TermBase
     {
         public string Operator { get; }
 
-        public ITerm Degree { get; private set; }
+        //public TermBase Degree { get; private set; }
 
-        public ITerm MainBody { get; private set; }
+        public TermBase MainBody { get; private set; }
         
 
-        public ReadOnlyCollection<Variable> Variables { get; }
+        public override IList<Variable> Variables { get; protected set; }
 
-        public ExpressionType Type { get; }
-
-        public bool IsExponential => throw new NotImplementedException();
-        
+        public override ExpressionType Type { get; protected set; }
 
 
         /// <param name="index">the index from where main body starts, excluding operator</param>
-        public OperatoredEntity(string op, string str, ref int index)
+        public OperatoredTerm(string op, TermBase term)
         {
             Operator = op;
-            int start = index - op.Length;
 
-            /// degree , if any
-            str.PassWhiteSpace(ref index);
-            if (str[index] == '^')
-            {
-                Degree = str.NextSingleTerm(ref index);
-            }
-
-            /// body 
-            if (str[index].IsStartingBracket())
-            {
-                MainBody = new Expression(str, ref index);
-            }
-            else MainBody = new Entity(str, ref index);
+            MainBody = term;
 
             ///other stuffs
-            if (Degree is null)
-                Variables = MainBody.Variables;
-            else Variables = new ReadOnlyCollection<Variable>(MainBody.Variables.Union(Degree.Variables).ToList());
+            Variables = MainBody.Variables;
 
-            switch (op)
+            if (term.Type == ExpressionType.Constant)
+                Type = ExpressionType.Constant;
+
+            else switch (op)
             {
                 case "sin":
                 case "Sin":
@@ -71,12 +56,12 @@ namespace MathSharp.MathEntities
         }
 
 
-        public int CompareTo(ITerm other)
+        public int CompareTo(TermBase other)
         {
             throw new NotImplementedException();
         }
 
-        public double EvaluateFor(IList<Variable> valuePairs)
+        public override double EvaluateFor(params Variable[] valuePairs)
         {
             double ret_value = MainBody.EvaluateFor(valuePairs);
             switch (Operator)
@@ -118,6 +103,37 @@ namespace MathSharp.MathEntities
                 default: throw new Exception("Couldn't evaluate operatored entity");
             }
             return ret_value;
+        }
+
+        public override string ToString()
+        {
+            return Operator + MainBody.ToString();
+        }
+
+        public override TermBase Derivative(int degree = 1, char RegardsTo = '\0')
+        {
+            throw new NotImplementedException();
+        }
+
+        public override TermBase Integral(int degree = 1, char RegardsTo = '\0', double upperbound = double.NaN, double lowerbound = double.NaN)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override TermBase Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public static bool operator ==(OperatoredTerm a, OperatoredTerm b)
+        {
+            if (a.Type == ExpressionType.Constant && a.Type == b.Type)
+                return a.EvaluateFor(null) == b.EvaluateFor(null);
+            return a.Operator == b.Operator && a.MainBody == b.MainBody;
+        }
+        public static bool operator !=(OperatoredTerm a, OperatoredTerm b)
+        {
+            return !(a == b);
         }
     }
 }
